@@ -1,0 +1,22 @@
+runtime! debian.vim
+filetype on
+filetype plugin on
+filetype indent on
+syntax on
+set showcmd
+set showmatch
+set smartcase
+set incsearch
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
+set smarttab
+set expandtab
+set autoindent
+set pastetoggle=<F2>
+set mouse=
+set ttymouse=
+colors elflord
+if filereadable("/etc/vim/vimrc.local")
+    source /etc/vim/vimrc.local
+endif

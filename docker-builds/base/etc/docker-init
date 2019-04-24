@@ -1,0 +1,14 @@
+#!/bin/bash 
+
+source /etc/profile
+/etc/init.d/cron start 
+
+if [ -d /etc/docker-init.d ]; then
+    for i in /etc/docker-init.d/*.sh; do
+        if [ -r "$i" ]; then
+          source "$i"
+        fi;
+    done;
+fi;
+
+while true; do sleep 30; done;
