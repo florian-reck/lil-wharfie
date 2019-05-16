@@ -2,7 +2,9 @@
 chmod u+s /bin/ping /bin/ping6
 
 #start services
+syslogd -C 128 -t
 service cron start
+service slapd start
 
 #wait forever
 while true; do sleep 60s; done;
