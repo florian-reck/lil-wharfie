@@ -2,7 +2,7 @@
 chmod u+s /bin/ping /bin/ping6
 
 #start services
-syslogd -C 128 -t
+syslogd -O - -C128 -t
 service cron start
 service slapd start
 

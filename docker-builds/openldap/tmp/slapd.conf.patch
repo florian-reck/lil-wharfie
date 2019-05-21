@@ -1,0 +1,11 @@
+--- /usr/share/slapd/slapd.conf	2019-05-21 18:44:32.455085606 +0000
++++ /usr/share/slapd/slapd.conf	2019-05-21 18:45:02.022959444 +0000
+@@ -7,7 +7,7 @@
+ # Schema and objectClass definitions
+ include         /etc/ldap/schema/core.schema
+ include         /etc/ldap/schema/cosine.schema
+-include         /etc/ldap/schema/nis.schema
++include         /etc/ldap/schema/rfc2307bis.schema
+ include         /etc/ldap/schema/inetorgperson.schema
+ 
+ # Where the pid file is put. The init.d script

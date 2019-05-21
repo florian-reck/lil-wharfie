@@ -1,0 +1,11 @@
+--- /usr/share/slapd/slapd.init.ldif	2019-05-21 18:44:41.095048756 +0000
++++ /usr/share/slapd/slapd.init.ldif	2019-05-21 18:45:59.298714661 +0000
+@@ -41,7 +41,7 @@
+ 
+ include: file:///etc/ldap/schema/core.ldif
+ include: file:///etc/ldap/schema/cosine.ldif
+-include: file:///etc/ldap/schema/nis.ldif
++include: file:///etc/ldap/schema/rfc2307bis.ldif
+ include: file:///etc/ldap/schema/inetorgperson.ldif
+ 
+ # Load module

@@ -3,7 +3,7 @@ dpkg_arch=$(dpkg-architecture -qDEB_HOST_ARCH)
 debian_release="testing"
 docker_root="./docker-root"
 old_pwd="$PWD"
-image_name="lilwharfie_${dpkg_arch}"
+image_name="lilwharfie"
 
 
 if [ "$USER" == "root" ]; then
@@ -18,9 +18,9 @@ if [ "$USER" == "root" ]; then
     --arch=$dpkg_arch                                   \
     $debian_release $docker_root http://httpredir.debian.org/debian &&
     cd "$docker_root" &&
-    tar -c . | docker import - ${image_name}_root:latest &&
+    tar -c . | docker import - ${image_name}_root:${dpkg_arch} &&
     cd "$old_pwd" &&
-    docker build -f Dockerfile -t ${image_name}_base:latest . 
+    docker build -f Dockerfile -t ${image_name}_base:${dpkg_arch} . 
     
 else
     echo "You must be root to build the base environment for this Docker image"
