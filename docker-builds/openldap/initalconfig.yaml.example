@@ -1,0 +1,60 @@
+# This is a configuration example for the OpenLDAP container. Just modify this
+# for your needs and copy it to /etc/initialconfig.yaml on your container and
+# execute "initialsetup";
+
+  top:
+    domain: local.site 
+    description: this is the basement of your configuration
+    organization: Home
+    adminpassword: its_not_set_yet
+
+  users:
+  - uidNumber:  10000
+    gidNumber:  10000
+    uid:        john
+    givenName:  John
+    sirName:    Doe
+    shell:      /usr/bin/bash
+    mail:       john.doe@local.site
+    enabled:    true
+    password:   its_not_set_yet
+
+  - uidNumber:  10001
+    gidNumber:  10001
+    uid:        jane
+    givenName:  Jane
+    sirName:    Doe
+    shell:      /usr/bin/zsh
+    mail:       jane.doe@local.site
+    enabled:    true
+    password:   its_not_set_yet
+
+  - uidNumber:  10002
+    gidNumber:  10002
+    uid:        little
+    givenName:  Little
+    sirName:    Doe
+    shell:      /usr/sbin/nologin
+    mail:       little.doe@local.site
+    enabled:    true
+    password:   its_not_set_yet
+
+  groups:
+  - gidNumber:  11000
+    name:       messenger
+    members:    
+    - john
+    - little
+    - jane
+
+  - gidNumber:  11001
+    name:       cloud
+    members:
+    - john
+    - jane
+
+  - gidNumber:  11002
+    name:       loginbox
+    members:
+    - johne
+    - little

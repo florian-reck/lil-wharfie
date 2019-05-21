@@ -1,0 +1,135 @@
+#!/usr/bin/python3
+import os
+import ldap, ldap.sasl, ldap.modlist
+import urllib.parse 
+import crypt
+import yaml
+from pprint import pprint
+
+configFile = '/etc/initalconfig.yaml'
+config = yaml.safe_load(open(configFile, 'r').read())
+defaultHomeDir = '/home'
+
+c = ldap.initialize('ldapi:///run/ldapi')
+c.sasl_non_interactive_bind_s('EXTERNAL')
+
+
+## setup initial domain and admin password
+salt = crypt.mksalt()
+fullDomainName = config['top']['domain'].strip().lower()
+suffix = 'dc=' + fullDomainName.replace('.', ',dc=')
+cryptPassword = crypt.crypt(config['top']['adminpassword'], salt)
+noneValue = ['None'.encode('utf-8')]
+adminDN = 'cn=admin,' + suffix
+old = {
+    'olcRootPw' : noneValue,
+    'olcSuffix' : noneValue,
+    'olcRootDN' : noneValue
+}
+new = {
+    'olcRootPw' : [('{CRYPT}%s' % cryptPassword).encode('utf-8')],
+    'olcSuffix' : [suffix.encode('utf-8')],
+    'olcRootDN' : [adminDN.encode('utf-8')]
+}
+ldif = ldap.modlist.modifyModlist(old,new)
+dn = 'olcDatabase={1}mdb,cn=config'
+c.modify_s(dn,ldif)
+c.unbind_s()
+
+
+# we need to use the admin DN instead of SASL + root now
+c = ldap.initialize('ldap://localhost')
+c.simple_bind_s(adminDN, config['top']['adminpassword'])
+
+## setup dcObjectf
+domainControllerName = fullDomainName.split('.')[0]
+add = {
+    'dc'            :[domainControllerName.encode('utf-8')],
+    'o'             : [config['top']['description'].encode('utf-8')],
+    'objectClass'   : [b'organization', b'dcObject'],
+}
+ldif = ldap.modlist.addModlist(add)
+c.add_s(suffix, ldif)
+
+## setup OUs for people and groups
+peopleOU = 'ou=people,' + suffix
+add = {
+        'ou'            : ['people'.encode('utf-8')],    
+        'objectClass'   : [b'organizationalUnit'], 
+}
+ldif = ldap.modlist.addModlist(add)
+c.add_s(peopleOU, ldif)
+
+groupsOU = 'ou=groups,' + suffix
+add = {
+        'ou'            : ['groups'.encode('utf-8')],    
+        'objectClass'   : [b'organizationalUnit'], 
+}
+ldif = ldap.modlist.addModlist(add)
+c.add_s(groupsOU, ldif)
+
+
+## setup users
+userDNs = {}
+for user in config['users']:
+
+    # create POSIX user
+    if user['enabled'] and 'password' in user:
+        userDN = 'uid=%s,%s' % (user['uid'], peopleOU)
+        userDNs[user['uid']] = userDN
+        salt = crypt.mksalt()
+        userPassword = crypt.crypt(user['password'], salt)
+        displayName = '%s %s' % (user['givenName'], user['sirName'])
+        add = {
+            'uid'           : [user['uid'].encode('utf-8')],
+            'cn'            : [displayName.encode('utf-8')],
+            'sn'            : [user['sirName'].encode('utf-8')],
+            'givenName'     : [user['givenName'].encode('utf-8')],
+            'displayName'   : [displayName.encode('utf-8')],
+            'mail'          : [user['mail'].encode('utf-8')],
+            'uidNumber'     : [str(user['uidNumber']).encode('utf-8')],
+            'gidNumber'     : [str(user['gidNumber']).encode('utf-8')],
+            'homeDirectory' : [(defaultHomeDir + os.sep + user['uid']).encode('utf-8')],
+            'loginShell'    : [user['shell'].encode('utf-8')],
+            'userPassword'  : [('{CRYPT}' + userPassword).encode('utf-8')],
+            'objectClass'   : [b'inetOrgPerson', b'person', b'posixAccount', b'shadowAccount'],
+        }
+        ldif = ldap.modlist.addModlist(add)
+        print('User for "%s" (uid %i) has been created' % (displayName, user['uidNumber']))
+        c.add_s(userDN, ldif)
+
+    # create user group for POSIX user
+        groupDN = 'cn=%s,%s' % (user['uid'], groupsOU)
+        add = {
+            'cn'            : [user['uid'].encode('utf-8')],
+            'gidNumber'     : [str(user['gidNumber']).encode('utf-8')],
+            'member'        : [('uid=%s,%s' % (user['uid'], suffix)).encode('utf-8')],
+            'objectClass'   : [b'groupOfNames', b'posixGroup']
+        }
+        ldif = ldap.modlist.addModlist(add)
+        c.add_s(groupDN, ldif)
+        print('User group for "%s" (gid %i) has been created' % (displayName, user['gidNumber']))
+
+
+## setup groups
+for group in config['groups']:
+    groupDN = 'cn=%s,%s' % (group['name'], groupsOU)
+    memberList = []
+    for userUid in group['members']:
+        if userUid in userDNs:
+            userDN = (userDNs[userUid]).encode('utf-8')
+            memberList.append(userDN)
+
+    add = {
+        'cn'            :  [group['name'].encode('utf-8')],
+        'gidNumber'     :  [str(group['gidNumber']).encode('utf-8')],
+        'objectClass'   :  [b'groupOfNames', b'posixGroup'],
+        'member'        :  memberList
+    }
+    ldif = ldap.modlist.addModlist(add)
+    c.add_s(groupDN, ldif)
+    print('Group "%s" (gid %i) has been created' % (group['name'], group['gidNumber']))
+
+c.unbind_s()
+
+

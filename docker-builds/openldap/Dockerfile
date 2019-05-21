@@ -6,6 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -yq install file slapd slapd-contrib libnss-ldap ldap-utils python3-ldap python3-yaml busybox-syslogd
 
 #reconfigure OpenLDAP to use rfc2703bis schema
+COPY usr/local/bin/* /usr/local/bin/
 COPY etc/ldap/schema/* /etc/ldap/schema/
 COPY tmp/* /tmp/
 RUN rm -f /var/lib/ldap/*
