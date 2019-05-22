@@ -4,12 +4,16 @@ import ldap, ldap.sasl, ldap.modlist
 import urllib.parse 
 import crypt
 import yaml
-from pprint import pprint
+from time import time
 
+## global defaults
 configFile = '/etc/initalconfig.yaml'
-config = yaml.safe_load(open(configFile, 'r').read())
+nssConfigFile = '/etc/libnss-ldap.conf'
+nssConfigSecretFile = '/etc/libnss-ldap.secret'
 defaultHomeDir = '/home'
 
+
+config = yaml.safe_load(open(configFile, 'r').read())
 c = ldap.initialize('ldapi:///run/ldapi')
 c.sasl_non_interactive_bind_s('EXTERNAL')
 
@@ -84,6 +88,7 @@ for user in config['users']:
             'uid'           : [user['uid'].encode('utf-8')],
             'cn'            : [displayName.encode('utf-8')],
             'sn'            : [user['sirName'].encode('utf-8')],
+            'gecos'         : [('%s' % userDN).encode('utf-8')], 
             'givenName'     : [user['givenName'].encode('utf-8')],
             'displayName'   : [displayName.encode('utf-8')],
             'mail'          : [user['mail'].encode('utf-8')],
@@ -93,6 +98,13 @@ for user in config['users']:
             'loginShell'    : [user['shell'].encode('utf-8')],
             'userPassword'  : [('{CRYPT}' + userPassword).encode('utf-8')],
             'objectClass'   : [b'inetOrgPerson', b'person', b'posixAccount', b'shadowAccount'],
+            'shadowLastChange' : [str(int(time() / (60 * 60 * 24))).encode('utf-8')],
+            'shadowMin'     : [b'0'],
+            'shadowMax'     : [b'99999'],
+            'shadowWarning' : [b'7'],
+            'shadowInactive': [b'-1'],
+            'shadowExpire'  : [b'-1'],
+            'shadowFlag'    : [b'-1']
         }
         ldif = ldap.modlist.addModlist(add)
         print('User for "%s" (uid %i) has been created' % (displayName, user['uidNumber']))
@@ -104,6 +116,7 @@ for user in config['users']:
             'cn'            : [user['uid'].encode('utf-8')],
             'gidNumber'     : [str(user['gidNumber']).encode('utf-8')],
             'member'        : [('uid=%s,%s' % (user['uid'], suffix)).encode('utf-8')],
+            'description'   : [('%s' % groupDN).encode('utf-8')],
             'objectClass'   : [b'groupOfNames', b'posixGroup']
         }
         ldif = ldap.modlist.addModlist(add)
@@ -123,6 +136,7 @@ for group in config['groups']:
     add = {
         'cn'            :  [group['name'].encode('utf-8')],
         'gidNumber'     :  [str(group['gidNumber']).encode('utf-8')],
+        'member'        : [('uid=%s,%s' % (user['uid'], suffix)).encode('utf-8')],
         'objectClass'   :  [b'groupOfNames', b'posixGroup'],
         'member'        :  memberList
     }
@@ -132,4 +146,33 @@ for group in config['groups']:
 
 c.unbind_s()
 
+## create configuration file
+configString = """
+base {Base}
+uri ldap://{FQDN}/
+ldap_version 3
+rootbinddn {AdminDN}
+bind_policy soft
+pam_filter objectclass=posixAccount
+pam_password crypt
+nss_base_passwd     {PeopleOU}?one
+nss_base_shadow     {PeopleOU}?one
+nss_base_group      {GroupsOU}?one
+nss_map_attribute uniqueMember member
+""".format(**{
+    'Base'          :   suffix,
+    'AdminDN'       :   adminDN,
+    'PeopleOU'      :   peopleOU,
+    'GroupsOU'      :   groupsOU,
+    'FQDN'          :   fullDomainName
+})
 
+
+with open(nssConfigFile, 'w') as f:
+    f.write(configString)
+
+with open(nssConfigSecretFile, 'w') as f:
+    f.write(config['top']['adminpassword'])
+os.chmod(nssConfigFile, 0o644)
+os.chmod(nssConfigSecretFile, 0o600)
+print('Configuration files have been deployed')

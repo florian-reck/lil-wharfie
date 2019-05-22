@@ -1,4 +1,4 @@
-FROM lilwharfie_armhf_root:latest
+FROM lilwharfie_root:armhf
 MAINTAINER Florian Reck
 
 # copy /etc stuff
@@ -8,11 +8,24 @@ COPY etc/apt/*                  /etc/apt/
 COPY etc/apt/sources.list.d/*   /etc/apt/sources.list.d/
 COPY etc/apt/apt.conf.d/*       /etc/apt/apt.conf.d/
 COPY etc/vim/vimrc              /etc/vim/vimrc
+COPY tmp/*                      /tmp/
 
 # remove unnecessary init systems (if they are installed)
 RUN bash -c "apt-get -yq --force-yes purge init systemd systemd-sysv dmsetup <<< 'Yes, do as I say!'"
-RUN apt-get -yq install pamtester build-essential openssh-client tmux wget zsh vim cvs git
+RUN apt-get -yq install openssh-client tmux wget zsh vim file busybox-syslogd patch diffutils
+
+# install tools for using ldap together with pam
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get -yq install libnss-ldap ldap-utils
 RUN apt-get -yq clean
+
+# pre-setup pam_ldap and libnss stuff
+RUN touch /etc/pam_ldap.secret; chmod 600 /etc/pam_ldap.secret
+RUN ln -s /etc/pam_ldap.secret /etc/libnss-ldap.secret
+RUN mv /etc/libnss-ldap.conf /etc/libnss-ldap.conf-dpkg
+RUN mv /etc/pam_ldap.conf /etc/pam_ldap.conf-dpkg
+RUN ln -s /etc/pam_ldap.conf /etc/libnss-ldap.conf
+RUN patch -p1 /etc/nsswitch.conf < /tmp/nsswitch.conf.patch
 
 # install Grml shell
 RUN wget -O "/tmp/zshrc" "http://git.grml.org/f/grml-etc-core/etc/zsh/zshrc"

@@ -3,7 +3,7 @@ MAINTAINER Florian Reck
 ENV DEBIAN_FRONTEND=noninteractive
 
 #install necessary packages
-RUN apt-get -yq install file slapd slapd-contrib libnss-ldap ldap-utils python3-ldap python3-yaml busybox-syslogd
+RUN apt-get -yq install slapd slapd-contrib libnss-ldap ldap-utils python3-ldap python3-yaml
 
 #reconfigure OpenLDAP to use rfc2703bis schema
 COPY usr/local/bin/* /usr/local/bin/

@@ -1,0 +1,17 @@
+--- /etc/nsswitch.conf.dpkg	2019-05-22 20:20:02.066103845 +0000
++++ /etc/nsswitch.conf	2019-05-22 20:20:16.118035429 +0000
+@@ -4,10 +4,10 @@
+ # If you have the `glibc-doc-reference' and `info' packages installed, try:
+ # `info libc "Name Service Switch"' for information about this file.
+ 
+-passwd:         files
+-group:          files
+-shadow:         files
+-gshadow:        files
++passwd:         files ldap
++group:          files ldap
++shadow:         files ldap
++gshadow:        files ldap
+ 
+ hosts:          files dns
+ networks:       files
