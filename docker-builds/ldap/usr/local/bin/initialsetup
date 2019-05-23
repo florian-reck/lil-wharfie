@@ -7,9 +7,9 @@ import yaml
 from time import time
 
 ## global defaults
-configFile = '/etc/initalconfig.yaml'
-nssConfigFile = '/etc/libnss-ldap.conf'
-nssConfigSecretFile = '/etc/libnss-ldap.secret'
+configFile = '/storage/initialconfig.yaml'
+nssConfigFile = '/storage/ldap/etc/libnss-ldap.conf'
+nssConfigSecretFile = '/storage/ldap/etc/libnss-ldap.secret'
 defaultHomeDir = '/home'
 
 

@@ -1,0 +1,11 @@
+--- common-session	2019-05-22 21:31:56.000000000 +0000
++++ common-session	2019-05-23 21:14:42.230122196 +0000
+@@ -23,4 +23,8 @@
+ # and here are more per-package modules (the "Additional" block)
+ session	required	pam_unix.so 
+ session	optional			pam_ldap.so 
++
++# automatically create home directories if they don't exist
++session    optional   pam_mkhomedir.so skel=/etc/skel/ umask=0027
++
+ # end of pam-auth-update config

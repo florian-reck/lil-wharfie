@@ -1,0 +1,29 @@
+#!/bin/bash -e
+
+if [ ! -d "/storage" ]; then
+    echo "We need a place to store and share persistent data. Please recreate this "
+    echo "container using docker -v parameter like this:"
+    echo ""
+    echo "  docker -v {your local storage directory}:/storage:rw,z ......"
+    echo ""
+    exit 1
+fi
+
+#define our service and home directories and setup permissions
+mkdir -p            /storage/ldap/etc /storage/home
+chown root:root     /storage/ldap /storage/home /storage /storage/initialconfig.yaml
+chmod 755           /storage/ldap /storage/ldap/etc /storage/home
+chmod 701           /storage
+chmod u+s           /bin/ping /bin/ping6
+chmod 600           /storage/initialconfig.yaml
+rm -rf              /home
+ln -s               /storage/home /home
+
+#start services
+syslogd -C128 -t
+service cron start
+service slapd start
+service nscd start
+
+#wait forever
+while true; do sleep 60s; done;
