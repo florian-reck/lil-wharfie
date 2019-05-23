@@ -3,7 +3,7 @@ MAINTAINER Florian Reck
 ENV DEBIAN_FRONTEND=noninteractive
 
 #install necessary packages
-RUN apt-get -yq install file xrdp libnss-ldap ldap-utils busybox-syslogd
+RUN apt-get -yq install dropbear-bin
 
 
 # clean up and create entrypoint

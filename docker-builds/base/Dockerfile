@@ -28,6 +28,7 @@ RUN ln -fs /storage/ldap/etc/libnss-ldap.secret /etc/libnss-ldap.secret
 RUN ln -fs /storage/ldap/etc/libnss-ldap.secret /etc/pam_ldap.secret
 RUN patch -p1 /etc/nsswitch.conf < /tmp/nsswitch.conf.patch
 RUN patch -p1 /etc/pam.d/common-session < /tmp/common-session.patch
+RUN patch -p1 /etc/pam.d/common-password < /tmp/common-password.patch
 
 # install Grml shell
 RUN wget -O "/tmp/zshrc" "http://git.grml.org/f/grml-etc-core/etc/zsh/zshrc"
