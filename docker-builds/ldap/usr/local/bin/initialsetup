@@ -3,24 +3,28 @@ import os
 import ldap, ldap.sasl, ldap.modlist
 import urllib.parse 
 import crypt
+import subprocess
 import yaml
 from time import time
 
 ## global defaults
 configFile = '/storage/initialconfig.yaml'
+clientConfigFile = '/storage/ldap/etc/ldap/ldap.conf'
 nssConfigFile = '/storage/ldap/etc/libnss-ldap.conf'
 nssConfigSecretFile = '/storage/ldap/etc/libnss-ldap.secret'
 defaultHomeDir = '/home'
-
-
 config = yaml.safe_load(open(configFile, 'r').read())
+
+## create TLS certificates if not existing
+fullDomainName = config['top']['domain'].strip().lower()
+subprocess.run(['/usr/local/bin/generate-certificate', fullDomainName])
+
+# connect to LDAP using SASL and the root account
 c = ldap.initialize('ldapi:///run/ldapi')
 c.sasl_non_interactive_bind_s('EXTERNAL')
 
-
 ## setup initial domain and admin password
 salt = crypt.mksalt()
-fullDomainName = config['top']['domain'].strip().lower()
 suffix = 'dc=' + fullDomainName.replace('.', ',dc=')
 cryptPassword = crypt.crypt(config['top']['adminpassword'], salt)
 noneValue = ['None'.encode('utf-8')]
@@ -149,7 +153,7 @@ c.unbind_s()
 ## create configuration file
 configString = """
 base {Base}
-uri ldap://{FQDN}/
+uri ldaps://{FQDN}/
 ldap_version 3
 rootbinddn {AdminDN}
 bind_policy soft
@@ -173,6 +177,23 @@ with open(nssConfigFile, 'w') as f:
 
 with open(nssConfigSecretFile, 'w') as f:
     f.write(config['top']['adminpassword'])
+
+
+ldapClientConfig = """
+TLS_CACERT  /etc/ssl/certs/ca-certificates.crt
+TLS_REQCERT allow
+BASE        {Base}
+URI         ldaps://{FQDN}:636
+""".format(**{
+    'Base'          :   suffix,
+    'FQDN'          :   fullDomainName
+})
+
+with open(clientConfigFile, 'w') as f:
+    f.write(ldapClientConfig)
+
 os.chmod(nssConfigFile, 0o644)
 os.chmod(nssConfigSecretFile, 0o600)
+os.chmod(clientConfigFile, 0o644)
+
 print('Configuration files have been deployed')

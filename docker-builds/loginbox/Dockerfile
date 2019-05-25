@@ -3,8 +3,8 @@ MAINTAINER Florian Reck
 ENV DEBIAN_FRONTEND=noninteractive
 
 #install necessary packages
-RUN apt-get -yq install dropbear-bin
-
+RUN apt-get -yq install dropbear-bin # xrdp fluxbox feh terminator gnumeric abiword pcmanfm evince firefox-esr
+COPY etc/xrdp/* /etc/xrdp/
 
 # clean up and create entrypoint
 RUN apt-get -yq clean

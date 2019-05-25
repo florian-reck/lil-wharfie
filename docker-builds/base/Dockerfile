@@ -10,6 +10,9 @@ COPY etc/apt/apt.conf.d/*       /etc/apt/apt.conf.d/
 COPY etc/vim/vimrc              /etc/vim/vimrc
 COPY tmp/*                      /tmp/
 
+# create predefined groups and system users used in all child containers
+RUN addgroup --system --gid 999 ssl-cert
+
 # remove unnecessary init systems (if they are installed)
 RUN bash -c "apt-get -yq --force-yes purge init systemd systemd-sysv dmsetup <<< 'Yes, do as I say!'"
 RUN apt-get -yq install openssh-client tmux wget zsh vim file busybox-syslogd patch diffutils
@@ -18,6 +21,7 @@ RUN apt-get -yq install openssh-client tmux wget zsh vim file busybox-syslogd pa
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -yq install libnss-ldap ldap-utils
 RUN apt-get -yq clean
+COPY usr/local/bin* /usr/local/bin
 
 # pre-setup pam_ldap and libnss stuff
 RUN mv /etc/libnss-ldap.conf /etc/libnss-ldap.conf-dpkg
@@ -26,6 +30,7 @@ RUN ln -fs /storage/ldap/etc/libnss-ldap.conf   /etc/libnss-ldap.conf
 RUN ln -fs /storage/ldap/etc/libnss-ldap.conf   /etc/pam_ldap.conf
 RUN ln -fs /storage/ldap/etc/libnss-ldap.secret /etc/libnss-ldap.secret
 RUN ln -fs /storage/ldap/etc/libnss-ldap.secret /etc/pam_ldap.secret
+RUN ln -fs /storage/ldap/etc/ldap/ldap.conf     /etc/ldap/ldap.conf
 RUN patch -p1 /etc/nsswitch.conf < /tmp/nsswitch.conf.patch
 RUN patch -p1 /etc/pam.d/common-session < /tmp/common-session.patch
 RUN patch -p1 /etc/pam.d/common-password < /tmp/common-password.patch
@@ -39,7 +44,6 @@ RUN /usr/bin/chsh -s /usr/bin/zsh root
 # creating cron service for apt/unattended updates
 RUN rm -fv /etc/cron.*/*apt*
 RUN ln -fs /usr/lib/apt/apt.systemd.daily /etc/cron.daily
-
 
 # clean up and create entrypoint
 RUN apt-get -yq clean

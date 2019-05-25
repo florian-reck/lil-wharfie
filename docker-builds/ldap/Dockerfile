@@ -9,10 +9,13 @@ RUN apt-get -yq install slapd slapd-contrib libnss-ldap ldap-utils python3-ldap 
 COPY usr/local/bin/* /usr/local/bin/
 COPY etc/ldap/schema/* /etc/ldap/schema/
 COPY tmp/* /tmp/
+RUN adduser openldap ssl-cert
 RUN rm -f /var/lib/ldap/*
 RUN rm -rf /etc/ldap/slapd.d ; mkdir /etc/ldap/slapd.d; chown openldap:openldap /etc/ldap/slapd.d
 RUN patch -p1 /usr/share/slapd/slapd.conf < /tmp/slapd.conf.patch
 RUN patch -p1 /usr/share/slapd/slapd.init.ldif < /tmp/slapd.init.ldif.patch
+RUN patch -p1 /etc/default/slapd < /tmp/slapd-defaultconfig.patch
+RUN ln -fs /storage/ldap/etc/ldap/ldap.conf /etc/ldap/ldap.conf
 RUN dpkg-reconfigure slapd
 
 

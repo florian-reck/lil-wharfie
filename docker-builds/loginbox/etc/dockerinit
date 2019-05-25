@@ -32,6 +32,7 @@ syslogd -C128 -t
 service cron start
 service nscd start
 dropbear -k -w -T2 -p22
+#service xrdp start
 
 #wait forever
 while true; do sleep 60s; done;

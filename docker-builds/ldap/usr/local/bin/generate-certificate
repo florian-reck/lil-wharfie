@@ -1,0 +1,36 @@
+#!/bin/bash
+domainname="$1"
+certstorage="/storage/certificates"
+subject="
+commonName=${domainname}";
+oldpwd="$PWD"
+
+if [ ! -d "$certstorage" ]; then
+    mkdir -p "$certstorage"
+    chown root:ssl-cert "$certstorage"
+    chmod 775 "$certstorage"
+fi;
+
+cd "$certstorage"
+if [ ! -f "privkey.pem" ]; then 
+	openssl genrsa -out "privkey.pem" 4096 &&
+	openssl rsa -in "privkey.pem" -pubout -out "pubkey.pem" &&
+	openssl req -new -subj "$(tr '\n' '/' <<< "$subject")" -batch -key "privkey.pem" -out "csr.pem" &&
+	openssl x509 -req -days 4096 -in "csr.pem" -signkey "privkey.pem" -out "cert.pem" &&
+	openssl pkcs12 -export -in "cert.pem" -inkey "privkey.pem" -out "cert.p12" -password pass:'' &&
+	chmod 640 "privkey.pem" "cert.p12" &&
+	chmod 644 "csr.pem" "cert.pem" "pubkey.pem" &&
+    chown root:ssl-cert "$certstorage/"*
+fi;
+
+cat << EOF >"$certstorage/openldap.ldif"
+dn: cn=config
+add: olcTLSCertificateFile
+olcTLSCertificateFile: /storage/certificates/cert.pem
+-
+add: olcTLSCertificateKeyFile
+olcTLSCertificateKeyFile: /storage/certificates/privkey.pem
+EOF
+ldapmodify -Y EXTERNAL -H ldapi:/// -f "$certstorage/openldap.ldif"
+
+cd "$PWD"

@@ -10,7 +10,7 @@ if [ ! -d "/storage" ]; then
 fi
 
 #define our service and home directories and setup permissions
-mkdir -p            /storage/ldap/etc /storage/home
+mkdir -p            /storage/ldap/etc/ldap /storage/home
 chown root:root     /storage/ldap /storage/home /storage /storage/initialconfig.yaml
 chmod 755           /storage/ldap /storage/ldap/etc /storage/home
 chmod 701           /storage
