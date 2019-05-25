@@ -17,7 +17,7 @@ RUN patch -p1 /usr/share/slapd/slapd.init.ldif < /tmp/slapd.init.ldif.patch
 RUN patch -p1 /etc/default/slapd < /tmp/slapd-defaultconfig.patch
 RUN ln -fs /storage/ldap/etc/ldap/ldap.conf /etc/ldap/ldap.conf
 RUN dpkg-reconfigure slapd
-
+RUN install-samba-schema.sh
 
 # clean up and create entrypoint
 RUN apt-get -yq clean

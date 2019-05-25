@@ -15,7 +15,7 @@ RUN addgroup --system --gid 999 ssl-cert
 
 # remove unnecessary init systems (if they are installed)
 RUN bash -c "apt-get -yq --force-yes purge init systemd systemd-sysv dmsetup <<< 'Yes, do as I say!'"
-RUN apt-get -yq install openssh-client tmux wget zsh vim file busybox-syslogd patch diffutils
+RUN apt-get -yq install openssh-client tmux wget zsh vim file busybox-syslogd patch binutils diffutils
 
 # install tools for using ldap together with pam
 ENV DEBIAN_FRONTEND=noninteractive
