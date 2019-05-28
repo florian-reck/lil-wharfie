@@ -1,5 +1,4 @@
 #!/bin/bash -e
-
 if [ ! -d "/storage" ]; then
     echo "We need a place to store and share persistent data. Please recreate this "
     echo "container using docker -v parameter like this:"
@@ -10,20 +9,31 @@ if [ ! -d "/storage" ]; then
 fi
 
 #define our service and home directories and setup permissions
-mkdir -p            /storage/ldap/etc/ldap /storage/home
-chown root:root     /storage/ldap /storage/home /storage /storage/initialconfig.yaml
-chmod 755           /storage/ldap /storage/ldap/etc /storage/home
+mkdir -p            /storage/home /storage/loginbox/etc/dropbear
+chown root:root     /storage/home /storage 
+chmod 755           /storage/home /storage/loginbox
 chmod 701           /storage
 chmod u+s           /bin/ping /bin/ping6
 chmod 600           /storage/initialconfig.yaml
 rm -rf              /home
 ln -s               /storage/home /home
+ln -fs              /storage/root/.zsh_history /root/.zsh_history
+
+#create fresh keys if they don't exist
+if [ ! -f "/storage/loginbox/etc/dropbear/dropbear_rsa_host_key" ]; then
+    dropbearkey -t rsa -f /storage/loginbox/etc/dropbear/dropbear_rsa_host_key
+    dropbearkey -t ecdsa -f /storage/loginbox/etc/dropbear/dropbear_ecdsa_host_key
+    chmod 600 /storage/loginbox/etc/dropbear/*
+fi
+ln -fs /storage/loginbox/etc/dropbear /etc/dropbear
+
 
 #start services
 syslogd -C128 -t
 service cron start
-service slapd start
 service nscd start
+dropbear -k -w -T2 -p22
+#service xrdp start
 
 #wait forever
 while true; do sleep 60s; done;

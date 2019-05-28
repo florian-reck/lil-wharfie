@@ -3,8 +3,11 @@ MAINTAINER Florian Reck
 ENV DEBIAN_FRONTEND=noninteractive
 
 #install necessary packages
-RUN apt-get -yq install dropbear-bin # xrdp fluxbox feh terminator gnumeric abiword pcmanfm evince firefox-esr
+RUN apt-get -yq install dropbear-bin xrdp samba-common-bin fluxbox feh terminator gnumeric abiword pcmanfm evince firefox-esr
 COPY etc/xrdp/* /etc/xrdp/
+
+# remove unnecessary init systems (if they are installed)
+RUN bash -c "apt-get -yq --force-yes purge init systemd systemd-sysv dmsetup <<< 'Yes, do as I say!'"
 
 # clean up and create entrypoint
 RUN apt-get -yq clean
@@ -16,4 +19,5 @@ RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 WORKDIR /root
 COPY etc/dockerinit /etc/
 RUN chmod 744 /etc/dockerinit
+ENV DEBIAN_FRONTEND=
 ENTRYPOINT /etc/dockerinit

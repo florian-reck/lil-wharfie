@@ -13,7 +13,7 @@
  # Example usage:
 -# SLAPD_SERVICES="ldap://127.0.0.1:389/ ldaps:/// ldapi:///"
 -SLAPD_SERVICES="ldap:/// ldapi:///"
-+SLAPD_SERVICES="ldap://127.0.0.1:389/ ldaps:/// ldapi:///"
++SLAPD_SERVICES="ldap:/// ldaps:/// ldapi:///"
 +#SLAPD_SERVICES="ldap:/// ldapi:///"
  
  # If SLAPD_NO_START is set, the init script will not start or restart

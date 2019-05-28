@@ -12,8 +12,10 @@ configFile = '/storage/initialconfig.yaml'
 clientConfigFile = '/storage/ldap/etc/ldap/ldap.conf'
 nssConfigFile = '/storage/ldap/etc/libnss-ldap.conf'
 nssConfigSecretFile = '/storage/ldap/etc/libnss-ldap.secret'
+sambaConfigFile = '/storage/samba/etc/smb.conf'
 defaultHomeDir = '/home'
 config = yaml.safe_load(open(configFile, 'r').read())
+
 
 ## create TLS certificates if not existing
 fullDomainName = config['top']['domain'].strip().lower()
@@ -75,6 +77,22 @@ add = {
 }
 ldif = ldap.modlist.addModlist(add)
 c.add_s(groupsOU, ldif)
+
+computersOU = 'ou=computers,' + suffix
+add = {
+        'ou'            : ['computers'.encode('utf-8')],    
+        'objectClass'   : [b'organizationalUnit'], 
+}
+ldif = ldap.modlist.addModlist(add)
+c.add_s(computersOU, ldif)
+
+idmapOU = 'ou=idmap,' + suffix
+add = {
+        'ou'            : ['idmap'.encode('utf-8')],    
+        'objectClass'   : [b'organizationalUnit'], 
+}
+ldif = ldap.modlist.addModlist(add)
+c.add_s(idmapOU, ldif)
 
 
 ## setup users
@@ -196,4 +214,64 @@ os.chmod(nssConfigFile, 0o644)
 os.chmod(nssConfigSecretFile, 0o600)
 os.chmod(clientConfigFile, 0o644)
 
+
+# creating samba default configuration
+smbConfig = """
+[global]
+   wins support = yes
+   name resolve order = wins
+   workgroup = SAMBA
+   logging = syslog
+   panic action = /usr/share/samba/panic-action %d
+   server role = standalone server
+   obey pam restrictions = yes
+   unix password sync = yes
+   passwd program = /usr/bin/passwd %u
+   passwd chat = *Enter\\snew\\s*\\spassword:* %n\\n *Retype\\snew\\s*\\spassword:* %n\\n *password\\supdated\\ssuccessfully* .
+   pam password change = yes
+   map to guest = bad user
+   usershare allow guests = yes
+
+   passdb backend = ldapsam:ldap://{FQDN}
+   ldap suffix = {Base}
+   ldap user suffix = ou=people
+   ldap group suffix = ou=groups
+   ldap machine suffix = ou=computers
+   ldap idmap suffix = ou=idmap
+   ldap admin dn = {AdminDN}
+   ldap ssl = start tls
+   ldap passwd sync = yes
+
+   tls enabled  = yes
+   tls keyfile  = /storage/certificates/privkey.pem
+   tls certfile = /storage/certificates/cert.pem
+   tls cafile   = 
+
+
+[homes]
+   comment = Home Directories
+   browseable = no
+   read only = yes
+   create mask = 0770
+   directory mask = 0770
+   valid users = %S
+
+""".format(**{
+    'Base'          :   suffix,
+    'AdminDN'       :   adminDN,
+    'PeopleOU'      :   peopleOU,
+    'GroupsOU'      :   groupsOU,
+    'FQDN'          :   fullDomainName,
+#    'PDCN'          :   domainControllerName
+})
+
+with open(sambaConfigFile, 'w') as f:
+    f.write(smbConfig)
+
 print('Configuration files have been deployed')
+
+print('Deploy indices for SAMBA schema')
+subprocess.run(['ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f /tmp/samba-indices.ldif'], shell = True)
+
+print('Restarting LDAP server')
+subprocess.run(['/etc/init.d/slapd stop; pkill slapd; /etc/init.d/slapd start'], shell = True)
