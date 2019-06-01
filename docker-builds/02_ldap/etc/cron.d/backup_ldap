@@ -1,0 +1,1 @@
+0 4 * * *   root /usr/local/bin/backup-ldap 2>&1 >>/var/log/backup-ldap.log

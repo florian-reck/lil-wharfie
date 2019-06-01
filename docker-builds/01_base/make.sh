@@ -21,7 +21,7 @@ if [ "$USER" == "root" ]; then
     tar -c . | docker import - ${image_name}_root:${dpkg_arch} &&
     cd "$old_pwd" &&
     docker build -f Dockerfile -t ${image_name}_base:${dpkg_arch} . 
-    
+    rm -rf "$docker_root"    
 else
     echo "You must be root to build the base environment for this Docker image"
     exit 1

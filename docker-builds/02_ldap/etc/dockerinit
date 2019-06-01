@@ -10,7 +10,7 @@ if [ ! -d "/storage" ]; then
 fi
 
 #define our service and home directories and setup permissions
-mkdir -p            /storage/ldap/etc/ldap /storage/ldap/var/lib/ldap /storage/home /storage/samba/etc /storage/root
+mkdir -p            /storage/ldap/etc/ldap /storage/home /storage/samba/etc /storage/root
 chown root:root     /storage/ldap /storage/home /storage /storage/initialconfig.yaml
 chmod 755           /storage/ldap /storage/ldap/etc /storage/home /storage/samba/etc
 chmod 701           /storage /storage/root
@@ -19,16 +19,21 @@ chmod 600           /storage/initialconfig.yaml
 rm -rf              /home
 ln -s               /storage/home /home
 ln -fs              /storage/root/.zsh_history /root/.zsh_history
-ln -fs              /storage/ldap/var/lib/ldap/data.mdb  /var/lib/ldap/data.mdb
-ln -fs              /storage/ldap/var/lib/ldap/lock.mdb  /var/lib/ldap/lock.mdb
-chmod 700           /storage/ldap/var/lib/ldap
-find /storage/ldap -print0 |xargs -0 chown openldap:openldap
 
 #start services
 syslogd -C128 -t
 service cron start
 service slapd start
 service nscd start
+
+if [ ! -z "$(find /storage/ldap/backup/* -maxdepth 0 -type d |sort |tail -n1)" ]; then
+    restore-last-ldap
+
+elif [ -f "/storage/initialconfig.yaml" ]; then
+    initialsetup
+    backup-ldap
+
+fi;
 
 #wait forever
 while true; do sleep 60s; done;

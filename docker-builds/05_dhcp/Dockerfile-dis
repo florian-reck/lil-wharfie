@@ -3,10 +3,14 @@ MAINTAINER Florian Reck
 ENV DEBIAN_FRONTEND=noninteractive
 
 #install necessary packages
-RUN apt-get -yq install samba smbclient python3-ldap python3-yaml
+RUN apt-get -yq install python3-ldap python3-yaml unbound
+
+#copy pre configuration
+COPY etc/unbound/unbound.conf.d/* /etc/unbound/unbound.conf.d/
 
 # copy necessary scripts 
-COPY usr/local/bin/* /usr/local/bin/
+#COPY usr/local/bin/* /usr/local/bin/
+
 
 # clean up and create entrypoint
 RUN apt-get -yq clean

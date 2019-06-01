@@ -1,0 +1,61 @@
+#!/usr/bin/python3
+import re, sys
+dnPattern       = re.compile('^dn:\s+(.*)$')
+objectPattern   = re.compile('^([^:]+):\s+(.*)$')
+from pprint import pprint
+
+
+## parse LDIF and create object list
+lineInput = sys.stdin.readlines()
+ldifObjects = []
+ldifObject = {}
+for line in lineInput: 
+    match = dnPattern.match(line.strip())
+    if match:
+        dn = match.group(1)
+        endOfBlock = True
+        ldifObject = {}
+        ldifObject['dn'] = [dn]
+    else:
+        match = objectPattern.match(line.strip())
+        if match:
+            key = match.group(1)
+            value = match.group(2)
+            if key in ldifObject:
+                ldifObject[key].append(value)
+            else:
+                ldifObject[key] = [value]
+    if endOfBlock and line.strip() == '':
+        endOfBlock = False
+        if dn and not dn.endswith('dc=nodomain') and ldifObject:
+            ldifObjects.append(ldifObject)
+        dn = None
+        ldifObject = None
+        
+## get DC object and the suffix
+suffix = None
+for item in ldifObjects:
+    if 'objectClass' in item:
+        if 'organization' in item['objectClass'] and 'dcObject' in item['objectClass']:
+            suffix = item['dn'][0]
+            break
+
+#remove old dc=nodomain quirks
+endOfBlock = False
+output = ''
+adminDN = 'cn=admin,' + suffix
+for line in lineInput:
+    match = dnPattern.match(line.strip())
+    if match:
+        dn = match.group(1)
+        if dn == 'dc=nodomain':
+           endOfBlock = True
+        elif dn == 'cn=admin,dc=nodomain':
+            output += 'dn: %s\n' % adminDN
+            continue
+    if endOfBlock and line.strip() == '':
+        endOfBlock = False
+    elif not endOfBlock:
+        output += line
+
+print(output)

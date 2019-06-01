@@ -8,6 +8,7 @@ RUN apt-get -yq install slapd slapd-contrib libnss-ldap ldap-utils python3-ldap 
 #reconfigure OpenLDAP to use rfc2703bis schema
 COPY usr/local/bin/* /usr/local/bin/
 COPY etc/ldap/schema/* /etc/ldap/schema/
+COPY etc/cron.d/*   /etc/cron.d/
 COPY tmp/* /tmp/
 RUN adduser openldap ssl-cert
 RUN rm -f /var/lib/ldap/*

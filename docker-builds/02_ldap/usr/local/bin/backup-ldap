@@ -1,0 +1,9 @@
+#!/bin/bash -e
+date_stamp="$(date +%Y%m%d-%H%M)"
+backup_dir="/storage/ldap/backup/$date_stamp"
+mkdir -p "$backup_dir"
+slapcat -n0 |gzip -9c > "${backup_dir}/config.ldif.gz"
+slapcat -n1 |\
+    fix-nodomain-ldif   |\
+    gzip -9c > "${backup_dir}/data.ldif.gz"
+echo "Backup finished ($date_stamp)"

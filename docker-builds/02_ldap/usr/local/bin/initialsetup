@@ -219,7 +219,7 @@ os.chmod(clientConfigFile, 0o644)
 smbConfig = """
 [global]
    wins support = yes
-   name resolve order = wins
+   dns proxy = yes
    workgroup = SAMBA
    logging = syslog
    panic action = /usr/share/samba/panic-action %d
@@ -227,7 +227,8 @@ smbConfig = """
    obey pam restrictions = yes
    unix password sync = yes
    passwd program = /usr/bin/passwd %u
-   passwd chat = *Enter\\snew\\s*\\spassword:* %n\\n *Retype\\snew\\s*\\spassword:* %n\\n *password\\supdated\\ssuccessfully* .
+   #passwd chat = *Enter\\snew\\s*\\spassword:* %n\\n *Retype\\snew\\s*\\spassword:* %n\\n *password\\supdated\\ssuccessfully* .
+   passwd chat = *New\spassword:* %n\n *Re-enter\snew\spassword:* %n\n *passwd:\spassword\supdated\ssuccessfully* 
    pam password change = yes
    map to guest = bad user
    usershare allow guests = yes

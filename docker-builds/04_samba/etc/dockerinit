@@ -27,7 +27,7 @@ service cron start
 service nscd start
 service smbd start
 service nmbd start
-populate-samba.sh
+populate-samba.py
 
 #wait forever
 while true; do sleep 60s; done;

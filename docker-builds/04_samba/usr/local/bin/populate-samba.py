@@ -32,7 +32,6 @@ if not 'URI' in ldapConfig:
 c = ldap.initialize(ldapConfig['URI'])
 c.simple_bind_s(adminDN, config['top']['adminpassword'])
 
-newUsers = []
 searchResultId = c.search(suffix, ldap.SCOPE_SUBTREE, ldapSearchFilter, ['uid'])
 while True:
     t, d = c.result(searchResultId, 0)
@@ -43,11 +42,7 @@ while True:
         uid = attr['uid'][0].decode('utf-8')
         for user in config['users']:
             if user['uid'] == uid:
-                newUsers.append({
-                    'username'  :   user['uid'],
-                    'password'  :   user['password']
-                })
-                proc = subprocess.Popen(['smbpasswd', '-s', '-a', user['uid']], stdin = subprocess.PIPE)
+                proc = subprocess.Popen(['smbpasswd', '-a', user['uid']], stdin = subprocess.PIPE)
                 out, err = proc.communicate(('%s\n%s\n' % (user['password'], user['password'])).encode('utf-8'))
                 if out != None:
                     print(out)

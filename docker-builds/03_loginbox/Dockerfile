@@ -3,7 +3,7 @@ MAINTAINER Florian Reck
 ENV DEBIAN_FRONTEND=noninteractive
 
 #install necessary packages
-RUN apt-get -yq install dropbear-bin xrdp samba-common-bin fluxbox feh terminator gnumeric abiword pcmanfm evince firefox-esr
+RUN apt-get -yq install dropbear-bin xrdp samba-common-bin smbclient fluxbox feh terminator gnumeric abiword pcmanfm evince firefox-esr build-essential nmap dnsutils whois keepassxc apt-file 
 COPY etc/xrdp/* /etc/xrdp/
 
 # remove unnecessary init systems (if they are installed)

@@ -1,0 +1,13 @@
+#/bin/bash -e
+old_pwd="$PWD"
+cd "$1"
+pkill slapd;
+rm -f /var/lib/ldap/*.mdb
+rm -rf /etc/ldap/slapd.d
+mkdir -p /etc/ldap/slapd.d
+gzip -dc config.ldif.gz | slapadd -n0 -l /dev/stdin -F /etc/ldap/slapd.d
+gzip -dc data.ldif.gz | slapadd -n1 -l /dev/stdin -F /etc/ldap/slapd.d
+find /etc/ldap/slapd.d -print0 |xargs -0 chown -v openldap:openldap
+find /var/lib/ldap -print0 |xargs -0 chown -v openldap:openldap
+service slapd start
+cd "$old_pwd"
