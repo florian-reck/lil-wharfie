@@ -1,0 +1,74 @@
+#!/usr/bin/python3
+import yaml, sys, socket
+
+## global defaults
+configFile = '/storage/initialconfig.yaml'
+dnsmasqConfigFile = '/etc/dnsmasq.d/config'
+
+config = yaml.safe_load(open(configFile, 'r').read())
+try:
+    dnsmasqConfigString = """# dnsmasq configuration #
+log-dhcp
+dhcp-range={ipRangeStart},{ipRangeStop},{ipNetmask},2h
+
+#gateway:
+dhcp-option=3,{ispRouterIp4}
+
+#ntp-server: 
+dhcp-option=42,{ispRouterIp4}
+dhcp-option=4,{ispRouterIp4}
+
+#dns-server:
+dhcp-option=6,{dnsIp4}
+dhcp-option=119,{domain}
+dhcp-option=15,{domain}
+dhcp-option=44,{hostIp}
+dhcp-option=45,{hostIp}
+dhcp-option=46,8
+server=127.0.0.1#21053
+port=53
+domain={domain}
+no-resolv
+dns-loop-detect
+
+#IPv6 configuration from fritz.box
+enable-ra
+dhcp-option=option6:dns-server,[{ispRouterIp6}]
+dhcp-option=option6:domain-search,{domain}
+dhcp-range=::,constructor:eth0,ra-names,ra-stateless
+ra-param=eth0,high,60,1200
+
+#misc
+dhcp-authoritative
+proxy-dnssec
+dhcp-option=vendor:MSFT,2,1i
+""".format(**{
+    'ipRangeStart'  : config['network']['dhcp']['ipRangeStart'],
+    'ipRangeStop'   : config['network']['dhcp']['ipRangeStop'],
+    'ipNetmask'     : config['network']['dhcp']['ipNetmask'],
+    'releaseTime'   : config['network']['dhcp']['releaseTime'],
+    'hostIp'        : config['network']['hostIp'],
+    'ispRouterIp4'  : config['network']['ispRouter']['ip'],
+    'ispRouterIp6'  : config['network']['ispRouter']['ip6'],
+    'domain'        : config['top']['domain'],
+    'dnsIp4'        : socket.gethostbyname(socket.gethostname())
+})
+
+    if 'fixIps' in config['network']:
+        dnsmasqConfigString += '\n# clients with fixed IPs\n'
+        for machine in config['network']['fixIps']:
+            dnsmasqConfigString += 'dhcp-host=%s,%s,%s,%s\n' % (machine['mac'], machine['ip'], machine['hostName'], config['network']['dhcp']['releaseTime'])
+
+except KeyError as e:
+    print('initialconfig.yaml doesn\'t provide all necessary fields; could not create dnsmasq configuration!')
+    sys.exit(1)
+
+with open(dnsmasqConfigFile, 'w') as f:
+    f.write(dnsmasqConfigString)
+
+print('dnsmasq configuration has been created')
+
+with open('/etc/hosts', 'a') as f:
+    f.write("%s\t%s\n" % (config['network']['hostIp'], config['top']['domain']))
+
+print('added domain to /etc/hosts')

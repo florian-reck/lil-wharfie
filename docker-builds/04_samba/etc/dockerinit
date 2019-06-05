@@ -24,6 +24,7 @@ smbpasswd -w "$(cat /storage/ldap/etc/libnss-ldap.secret)"
 #start services
 syslogd -C128 -t
 service cron start
+service anacron start
 service nscd start
 service smbd start
 service nmbd start

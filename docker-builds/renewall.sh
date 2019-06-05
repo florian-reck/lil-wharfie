@@ -16,7 +16,7 @@ do
             $(cat docker-parameter) \
             $image_name
         docker start $container_name
-        sleep 5s
+        sleep 3s
     fi;    
 done
 

@@ -7,7 +7,7 @@ image_name="lilwharfie"
 
 
 if [ "$USER" == "root" ]; then
-    rm -rf "$docker_root"
+    rm -rf "$docker_root" root.tar*
     mkdir -p $docker_root
     debootstrap \
     --variant=minbase                                   \
@@ -18,7 +18,9 @@ if [ "$USER" == "root" ]; then
     --arch=$dpkg_arch                                   \
     $debian_release $docker_root http://httpredir.debian.org/debian &&
     cd "$docker_root" &&
-    tar -c . | docker import - ${image_name}_root:${dpkg_arch} &&
+    tar -cf "../root.tar" . &&
+    docker import "../root.tar" ${image_name}_root:${dpkg_arch} &&
+    rm -vf "../root.tar" &&
     cd "$old_pwd" &&
     docker build -f Dockerfile -t ${image_name}_base:${dpkg_arch} . 
     rm -rf "$docker_root"    

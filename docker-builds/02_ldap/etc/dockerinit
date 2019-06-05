@@ -23,8 +23,8 @@ ln -fs              /storage/root/.zsh_history /root/.zsh_history
 #start services
 syslogd -C128 -t
 service cron start
+service anacron start
 service slapd start
-service nscd start
 
 if [ ! -z "$(find /storage/ldap/backup/* -maxdepth 0 -type d |sort |tail -n1)" ]; then
     restore-last-ldap
@@ -32,8 +32,15 @@ if [ ! -z "$(find /storage/ldap/backup/* -maxdepth 0 -type d |sort |tail -n1)" ]
 elif [ -f "/storage/initialconfig.yaml" ]; then
     initialsetup
     backup-ldap
-
 fi;
+
+cd /storage/ldap/etc
+ln -fs libnss-ldap.conf pam_ldap.conf
+ln -fs libnss-ldap.secret pam_ldap.secret
+cp /etc/nsswitch.conf .
+cd ..
+:>ldap_preconfig.tar.gz
+find etc -print0 |xargs -0 tar cvzf ldap_preconfig.tar.gz
 
 #wait forever
 while true; do sleep 60s; done;

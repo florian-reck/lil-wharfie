@@ -1,3 +1,4 @@
+--restart unless-stopped
 -p445:445
 -p139:139
 -p138:138/udp

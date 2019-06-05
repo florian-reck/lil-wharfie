@@ -3,14 +3,16 @@ MAINTAINER Florian Reck
 ENV DEBIAN_FRONTEND=noninteractive
 
 #install necessary packages
-RUN apt-get -yq install python3-ldap python3-yaml unbound
+RUN apt-get -yq install python3-ldap python3-yaml unbound dnsmasq dnsutils
 
 #copy pre configuration
 COPY etc/unbound/unbound.conf.d/* /etc/unbound/unbound.conf.d/
 
-# copy necessary scripts 
-#COPY usr/local/bin/* /usr/local/bin/
+# no global users necessary
+RUN patch -R /etc/nsswitch.conf < /tmp/nsswitch.conf.patch
 
+# copy necessary scripts 
+COPY usr/local/bin/* /usr/local/bin/
 
 # clean up and create entrypoint
 RUN apt-get -yq clean

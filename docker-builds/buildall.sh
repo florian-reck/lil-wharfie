@@ -13,8 +13,8 @@ do
     fi;
 
     if [ -f "make.sh" ]; then
-#        echo "disabled"
-        ./make.sh
+        echo "disabled"
+#        ./make.sh
     elif [ -f "Dockerfile" ]; then
         image_name="lilwharfie_${basedir:3}"
         docker build -f Dockerfile -t ${image_name}:$dpkg_arch .

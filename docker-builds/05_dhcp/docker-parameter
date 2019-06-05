@@ -1,4 +1,8 @@
---userns=host
---network=host
+--restart unless-stopped
+-p 53:53/udp
+-p 67:67/udp
+-p 546:546/udp
+-p 547:547/udp
 --cap-add=NET_ADMIN
 --cap-add=NET_BROADCAST
+--network pubnet

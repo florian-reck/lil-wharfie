@@ -10,6 +10,11 @@ fi
 
 #start services
 syslogd -C128 -t
+setup-dnsmasq
+service cron start
+service anacron start
+service unbound start
+service dnsmasq start
 
 #wait forever
 while true; do sleep 60s; done;
