@@ -1,4 +1,5 @@
 #!/bin/bash -e
+source /etc/profile
 if [ ! -d "/storage" ]; then
     echo "We need a place to store and share persistent data. Please recreate this "
     echo "container using docker -v parameter like this:"

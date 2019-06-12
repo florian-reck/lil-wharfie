@@ -1,0 +1,7 @@
+#!/bin/bash -e
+cat /storage/certificates/privkey.pem /storage/certificates/cert.pem > /etc/lighttpd/server.pem
+chown www-data:www-data /etc/lighttpd/server.pem
+chmod 660 /etc/lighttpd/server.pem
+pkill lighttpd
+rm -f /var/run/lighttpd.pid 
+service lighttpd start

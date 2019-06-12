@@ -1,1 +1,5 @@
-0 4 * * *   root /usr/local/bin/backup-ldap 2>&1 >>/var/log/backup-ldap.log
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+LANGUAGE=en_US.UTF-8
+LANG=en_US.UTF-8
+LC_ALL=en_US.UTF-8
+0 4 * * *   root source /etc/profile; backup-ldap 2>&1 >>/var/log/backup-ldap.log

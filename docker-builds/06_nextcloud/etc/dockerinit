@@ -1,0 +1,53 @@
+#!/bin/bash -e
+source /etc/profile
+if [ ! -d "/storage" ]; then
+    echo "We need a place to store and share persistent data. Please recreate this "
+    echo "container using docker -v parameter like this:"
+    echo ""
+    echo "  docker -v {your local storage directory}:/storage:rw,z ......"
+    echo ""
+    exit 1
+fi
+
+
+#define our service and home directories and setup permissions
+if [ ! -d "/storage/nextcloud" ]; then
+    mkdir -p /storage/nextcloud/var/lib /opt/nextcloud/data
+    mv /opt/nextcloud/config /storage/nextcloud
+    mv /opt/nextcloud/data /storage/nextcloud
+    mv /var/lib/mysql /storage/nextcloud/var/lib
+else
+    rm -rf /opt/nextcloud/config /opt/nextcloud/data /var/lib/mysql
+fi;
+sync
+ln -fs /storage/nextcloud/config /opt/nextcloud
+ln -fs /storage/nextcloud/data /opt/nextcloud
+ln -fs /storage/nextcloud/var/lib/mysql /var/lib
+find /storage/nextcloud -print0 |xargs -0 chown www-data:www-data
+find /storage/nextcloud/var/lib/mysql -print0 |xargs -0 chown mysql:mysql
+find /opt/nextcloud -print0 |xargs -0 chown www-data:www-data
+
+#create lightty usable certificate from storage 
+cat /storage/certificates/privkey.pem /storage/certificates/cert.pem > /etc/lighttpd/server.pem
+chown www-data:www-data /etc/lighttpd/server.pem
+chmod 660 /etc/lighttpd/server.pem
+
+# set MySQL root password
+if [ ! -d "/storage/nextcloud/.mysqlcreds" ]; then
+    mysql_install_db
+    passgen="$(dd if=/dev/urandom count=16 bs=32 2>/dev/null |tr -cd "[:alnum:]" |head -c 16)"
+    echo "$passgen" > "/storage/nextcloud/.mysqlcreds"
+    chmod 600 "/storage/nextcloud/.mysqlcreds"
+fi;
+
+
+#start main services
+service cron start
+service anacron start
+service redis-server start
+service mysql start
+service lighttpd start
+
+
+#wait forever
+while true; do sleep 60s; done;

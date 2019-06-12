@@ -228,12 +228,14 @@ smbConfig = """
    unix password sync = yes
    passwd program = /usr/bin/passwd %u
    #passwd chat = *Enter\\snew\\s*\\spassword:* %n\\n *Retype\\snew\\s*\\spassword:* %n\\n *password\\supdated\\ssuccessfully* .
-   passwd chat = *New\spassword:* %n\\n *Re-enter\snew\spassword:* %n\\n *passwd:\spassword\supdated\ssuccessfully* .
+   passwd chat = *New\\spassword:* %n\\n *Re-enter\\snew\\spassword:* %n\\n *passwd:\\spassword\\supdated\\ssuccessfully* .
    pam password change = yes
    map to guest = bad user
    usershare allow guests = yes
    load printers = no
    disable spoolss = yes
+   server signing = mandatory
+   client signing = mandatory
    socket options = TCP_NODELAY SO_RCVBUF=524288 SO_SNDBUF=524288 IPTOS_LOWDELAY
    passdb backend = ldapsam:ldap://{FQDN}
    ldap suffix = {Base}
