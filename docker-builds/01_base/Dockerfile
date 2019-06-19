@@ -7,6 +7,7 @@ COPY etc/profile.d/*            /etc/profile.d/
 COPY etc/apt/*                  /etc/apt/
 COPY etc/apt/sources.list.d/*   /etc/apt/sources.list.d/
 COPY etc/apt/apt.conf.d/*       /etc/apt/apt.conf.d/
+COPY etc/cron.d/*               /etc/cron.d/
 COPY etc/vim/vimrc              /etc/vim/vimrc
 COPY tmp/*                      /tmp/
 

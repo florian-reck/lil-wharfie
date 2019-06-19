@@ -8,7 +8,7 @@ do
     cd "$directory"
 
     if [ -f "Dockerfile" ]; then
-        sed -r "s/(FROM lilwharfie_root:).*/\1${dpkg_arch}/g" Dockerfile > Dockerfile.tmp
+        sed -r "s/(FROM lilwharfie_[^:]+:).*/\1${dpkg_arch}/g" Dockerfile > Dockerfile.tmp
         mv -v Dockerfile.tmp Dockerfile
     fi;
 
