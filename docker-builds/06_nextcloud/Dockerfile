@@ -10,6 +10,7 @@ ADD etc/lighttpd /etc/lighttpd
 ADD etc/php/7.3/cgi/php.ini /etc/php/7.3/cgi
 
 # copy necessary scripts 
+COPY etc/cron.d/*   /etc/cron.d/
 COPY usr/local/bin/* /usr/local/bin/
 RUN wget -O /opt/nextcloud.zip "https://download.nextcloud.com/server/releases/nextcloud-16.0.1.zip"
 RUN cd /opt; unzip nextcloud.zip
