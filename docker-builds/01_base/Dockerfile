@@ -16,7 +16,7 @@ RUN addgroup --system --gid 999 ssl-cert
 
 # remove unnecessary init systems (if they are installed)
 RUN bash -c "apt-get -yq --force-yes purge init systemd systemd-sysv dmsetup <<< 'Yes, do as I say!'"
-RUN apt-get -yq install openssh-client tmux wget zsh vim file busybox-syslogd patch binutils diffutils anacron
+RUN apt-get -yq install openssh-client tmux wget zsh vim file busybox-syslogd patch binutils diffutils anacron python3-gi
 
 # install tools for using ldap together with pam
 ENV DEBIAN_FRONTEND=noninteractive
@@ -47,6 +47,7 @@ RUN rm -fv /etc/cron.*/*apt*
 RUN ln -fs /usr/lib/apt/apt.systemd.daily /etc/cron.daily
 
 # clean up and create entrypoint
+RUN apt-get -yq autoclean
 RUN apt-get -yq clean
 ENV TERM=xterm
 ENV LC_ALL=en_US.UTF-8

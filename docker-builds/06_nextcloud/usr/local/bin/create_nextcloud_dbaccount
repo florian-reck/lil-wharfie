@@ -31,7 +31,8 @@ cat << EOF > /storage/nextcloud/config/autoconfig.php
   'dbname' => 'nextcloud',
   'dbhost' => 'localhost',
   'dbuser' => 'root',
-  'dbpass' => '${passgen}'
+  'dbpass' => '${passgen}',
+  'directory' => '/storage/nextcloud/data'
 )
 ?>
 EOF

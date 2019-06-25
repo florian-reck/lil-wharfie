@@ -19,6 +19,7 @@ config = yaml.safe_load(open(configFile, 'r').read())
 
 ## create TLS certificates if not existing
 fullDomainName = config['top']['domain'].strip().lower()
+suffix = 'dc=' + fullDomainName.replace('.', ',dc=')
 subprocess.run(['/usr/local/bin/generate-certificate', fullDomainName])
 
 # connect to LDAP using SASL and the root account
@@ -27,7 +28,6 @@ c.sasl_non_interactive_bind_s('EXTERNAL')
 
 ## setup initial domain and admin password
 salt = crypt.mksalt()
-suffix = 'dc=' + fullDomainName.replace('.', ',dc=')
 cryptPassword = crypt.crypt(config['top']['adminpassword'], salt)
 noneValue = ['None'.encode('utf-8')]
 adminDN = 'cn=admin,' + suffix
@@ -46,7 +46,6 @@ dn = 'olcDatabase={1}mdb,cn=config'
 c.modify_s(dn,ldif)
 c.unbind_s()
 
-
 # we need to use the admin DN instead of SASL + root now
 c = ldap.initialize('ldap://localhost')
 c.simple_bind_s(adminDN, config['top']['adminpassword'])
@@ -64,7 +63,7 @@ c.add_s(suffix, ldif)
 ## setup OUs for people and groups
 peopleOU = 'ou=people,' + suffix
 add = {
-        'ou'            : ['people'.encode('utf-8')],    
+        'ou'            : [b'people'],    
         'objectClass'   : [b'organizationalUnit'], 
 }
 ldif = ldap.modlist.addModlist(add)
@@ -72,7 +71,7 @@ c.add_s(peopleOU, ldif)
 
 groupsOU = 'ou=groups,' + suffix
 add = {
-        'ou'            : ['groups'.encode('utf-8')],    
+        'ou'            : [b'groups'],    
         'objectClass'   : [b'organizationalUnit'], 
 }
 ldif = ldap.modlist.addModlist(add)
@@ -80,7 +79,7 @@ c.add_s(groupsOU, ldif)
 
 computersOU = 'ou=computers,' + suffix
 add = {
-        'ou'            : ['computers'.encode('utf-8')],    
+        'ou'            : [b'computers'],    
         'objectClass'   : [b'organizationalUnit'], 
 }
 ldif = ldap.modlist.addModlist(add)
@@ -88,7 +87,7 @@ c.add_s(computersOU, ldif)
 
 idmapOU = 'ou=idmap,' + suffix
 add = {
-        'ou'            : ['idmap'.encode('utf-8')],    
+        'ou'            : [b'idmap'],    
         'objectClass'   : [b'organizationalUnit'], 
 }
 ldif = ldap.modlist.addModlist(add)
@@ -137,7 +136,7 @@ for user in config['users']:
         add = {
             'cn'            : [user['uid'].encode('utf-8')],
             'gidNumber'     : [str(user['gidNumber']).encode('utf-8')],
-            'member'        : [('uid=%s,%s' % (user['uid'], suffix)).encode('utf-8')],
+            'member'        : [('uid=%s,%s' % (user['uid'], peopleOU)).encode('utf-8')],
             'description'   : [('%s' % groupDN).encode('utf-8')],
             'objectClass'   : [b'groupOfNames', b'posixGroup']
         }
@@ -158,7 +157,7 @@ for group in config['groups']:
     add = {
         'cn'            :  [group['name'].encode('utf-8')],
         'gidNumber'     :  [str(group['gidNumber']).encode('utf-8')],
-        'member'        : [('uid=%s,%s' % (user['uid'], suffix)).encode('utf-8')],
+        'member'        : [('uid=%s,%s' % (user['uid'], peopleOU)).encode('utf-8')],
         'objectClass'   :  [b'groupOfNames', b'posixGroup'],
         'member'        :  memberList
     }

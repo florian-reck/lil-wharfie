@@ -16,6 +16,7 @@ RUN rm -rf /etc/ldap/slapd.d ; mkdir /etc/ldap/slapd.d; chown openldap:openldap 
 RUN patch -p1 /usr/share/slapd/slapd.conf < /tmp/slapd.conf.patch
 RUN patch -p1 /usr/share/slapd/slapd.init.ldif < /tmp/slapd.init.ldif.patch
 RUN patch -p1 /etc/default/slapd < /tmp/slapd-defaultconfig.patch
+RUN echo -e "\noverlay memberof" >> /usr/share/slapd/slapd.conf
 RUN ln -fs /storage/ldap/etc/ldap/ldap.conf /etc/ldap/ldap.conf
 RUN dpkg-reconfigure slapd
 RUN install-samba-schema.sh

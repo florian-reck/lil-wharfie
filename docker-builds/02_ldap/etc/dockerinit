@@ -31,6 +31,7 @@ if [ ! -z "$(find /storage/ldap/backup/* -maxdepth 0 -type d |sort |tail -n1)" ]
     restore-last-ldap
 
 elif [ -f "/storage/initialconfig.yaml" ]; then
+    enable-memberof.sh
     initialsetup
     backup-ldap
 fi;

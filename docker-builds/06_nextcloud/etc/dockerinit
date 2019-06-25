@@ -38,7 +38,7 @@ chown www-data:www-data /etc/lighttpd/server.pem
 chmod 660 /etc/lighttpd/server.pem
 
 # set MySQL root password
-if [ ! -d "/storage/nextcloud/.mysqlcreds" ]; then
+if [ ! -f "/storage/nextcloud/.mysqlcreds" ]; then
     rm -rf /opt/nextcloud/var/lib/mysql/*
     mysql_install_db
     passgen="$(dd if=/dev/urandom count=16 bs=32 2>/dev/null |tr -cd "[:alnum:]" |head -c 16)"
