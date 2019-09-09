@@ -9,6 +9,10 @@ if [ ! -d "/storage" ]; then
     exit 1
 fi
 
+#upgrade
+apt-get -yq update
+apt-get -yq full-upgrade
+
 #start services
 syslogd -C128 -t
 setup-dnsmasq

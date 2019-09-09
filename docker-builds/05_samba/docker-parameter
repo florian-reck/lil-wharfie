@@ -3,3 +3,6 @@
 -p139:139
 -p138:138/udp
 -p137:137/udp
+--cap-add=NET_ADMIN
+--cap-add=NET_BROADCAST
+--network pubnet
