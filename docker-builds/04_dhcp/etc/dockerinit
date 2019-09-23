@@ -9,10 +9,6 @@ if [ ! -d "/storage" ]; then
     exit 1
 fi
 
-#upgrade
-apt-get -yq update
-apt-get -yq full-upgrade
-
 #start services
 syslogd -C128 -t
 setup-dnsmasq
@@ -20,6 +16,11 @@ service cron start
 service anacron start
 service unbound start
 service dnsmasq start
+
+#upgrade
+apt-get -yq update
+apt-get -yq full-upgrade
+
 
 #wait forever
 while true; do sleep 60s; done;

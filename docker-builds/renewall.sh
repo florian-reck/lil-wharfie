@@ -1,5 +1,5 @@
 #!/bin/bash
-storage_dir="/mnt/hdd"
+storage_dir="/storage"
 oldpwd=$PWD
 dpkg_arch=$(dpkg-architecture -qDEB_HOST_ARCH)
 

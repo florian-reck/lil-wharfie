@@ -233,8 +233,6 @@ smbConfig = """
    usershare allow guests = yes
    load printers = no
    disable spoolss = yes
-   server signing = mandatory
-   client signing = mandatory
    socket options = TCP_NODELAY SO_RCVBUF=524288 SO_SNDBUF=524288 IPTOS_LOWDELAY
    passdb backend = ldapsam:ldap://{FQDN}
    ldap suffix = {Base}

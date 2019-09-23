@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 source /etc/profile
 
 if [ ! -d "/storage" ]; then

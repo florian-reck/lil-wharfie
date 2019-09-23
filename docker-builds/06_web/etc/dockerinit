@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 source /etc/profile
 if [ ! -d "/storage" ]; then
     echo "We need a place to store and share persistent data. Please recreate this "
