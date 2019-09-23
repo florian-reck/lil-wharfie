@@ -11,6 +11,7 @@ COPY etc/ldap/schema/* /etc/ldap/schema/
 COPY etc/cron.d/*   /etc/cron.d/
 COPY tmp/* /tmp/
 RUN adduser openldap ssl-cert
+RUN adduser openldap root
 RUN rm -f /var/lib/ldap/*
 RUN rm -rf /etc/ldap/slapd.d ; mkdir /etc/ldap/slapd.d; chown openldap:openldap /etc/ldap/slapd.d
 RUN patch -p1 /usr/share/slapd/slapd.conf < /tmp/slapd.conf.patch

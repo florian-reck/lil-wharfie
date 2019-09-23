@@ -14,7 +14,7 @@ fi
 mkdir -p            /storage/ldap/etc/ldap /storage/home /storage/samba/etc /storage/root
 chown root:root     /storage/ldap /storage/home /storage /storage/initialconfig.yaml
 chmod 755           /storage/ldap /storage/ldap/etc /storage/home /storage/samba/etc
-chmod 701           /storage /storage/root
+chmod 755           /storage /storage/root
 chmod u+s           /bin/ping /bin/ping6
 chmod 600           /storage/initialconfig.yaml
 rm -rf              /home

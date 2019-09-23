@@ -20,6 +20,7 @@ RUN apt-get -yq install openssh-client tmux wget zsh vim file busybox-syslogd pa
 
 # install tools for using ldap together with pam
 ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get -yq update && apt-get -yq full-upgrade
 RUN apt-get -yq install libnss-ldap ldap-utils
 RUN apt-get -yq clean
 COPY usr/local/bin* /usr/local/bin

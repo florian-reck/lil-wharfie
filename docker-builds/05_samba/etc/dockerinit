@@ -13,7 +13,7 @@ fi
 mkdir -p            /storage/home 
 chown root:root     /storage/home /storage 
 chmod 755           /storage/home /storage
-chmod 701           /storage
+chmod 755           /storage
 chmod u+s           /bin/ping /bin/ping6
 chmod 600           /storage/initialconfig.yaml
 rm -rf              /home
