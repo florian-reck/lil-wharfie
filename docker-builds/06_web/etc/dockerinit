@@ -9,28 +9,24 @@ if [ ! -d "/storage" ]; then
     exit 1
 fi
 
-
 #define our service and home directories and setup permissions
 rm -rf              /home
 ln -s               /storage/home /home
 ln -fs              /storage/root/.zsh_history /root/.zsh_history
 
-if [ ! -d "/storage/nextcloud" ]; then
-    mkdir -p /storage/nextcloud/var/lib /opt/nextcloud/data
-    mv -v /opt/nextcloud/config /storage/nextcloud
-    mv -v /opt/nextcloud/data /storage/nextcloud
-    mv -v /var/lib/mysql /storage/nextcloud/var/lib
+if [ ! -d "/storage/web" ]; then
+    mkdir -p /storage/web/var/lib /storage/web/docroot /var/lib/mysql
+    mv /var/lib/mysql /storage/web/var/lib
+    mv /opt/strichliste /storage/web/docroot/strichliste
 else
-    rm -rf /opt/nextcloud/config /opt/nextcloud/data /var/lib/mysql
+    rm -rf /var/lib/mysql
+    ln -fs /storage/web/var/lib/mysql /var/lib
 fi;
 
-ln -fs /storage/nextcloud/config /opt/nextcloud
-ln -fs /storage/nextcloud/data /opt/nextcloud
-ln -fs /storage/nextcloud/var/lib/mysql /var/lib
-
-find /storage/nextcloud -print0 |xargs -0 chown www-data:www-data
-find /storage/nextcloud/var/lib/mysql -print0 |xargs -0 chown mysql:mysql
-find /opt/nextcloud -print0 |xargs -0 chown www-data:www-data
+rm -rf /srv
+ln -fs /storage/web/docroot /srv
+find /storage/web -print0 |xargs -0 chown www-data:www-data
+find /storage/web/var/lib/mysql -print0 |xargs -0 chown mysql:mysql
 
 #create lightty usable certificate from storage 
 cat /storage/certificates/privkey.pem /storage/certificates/cert.pem > /etc/lighttpd/server.pem
@@ -38,17 +34,25 @@ chown www-data:www-data /etc/lighttpd/server.pem
 chmod 660 /etc/lighttpd/server.pem
 
 # set MySQL root password
-if [ ! -f "/storage/nextcloud/.mysqlcreds" ]; then
-    rm -rf /opt/nextcloud/var/lib/mysql/*
+if [ ! -f "/storage/web/.mysqlcreds" ]; then
+    rm -rf /opt/web/var/lib/mysql/*
     mysql_install_db
     passgen="$(dd if=/dev/urandom count=16 bs=32 2>/dev/null |tr -cd "[:alnum:]" |head -c 16)"
-    echo "$passgen" > "/storage/nextcloud/.mysqlcreds"
+    echo "$passgen" > "/storage/web/.mysqlcreds"
     service mysql start
     mysqladmin -u root password "$passgen"
-    create_nextcloud_dbaccount
-    chmod 600 "/storage/nextcloud/.mysqlcreds"
+    chmod 600 "/storage/web/.mysqlcreds"
+    mysql --user=root --password=$(cat /storage/web/.mysqlcreds) << EOF
+    GRANT ALL PRIVILEGES ON *.* TO 'strichliste'@'localhost' IDENTIFIED BY '32YourPassWord42';
+    GRANT SELECT ON *.* TO 'strichliste'@'localhost';
+EOF
+    mysql --user="strichliste" --password="32YourPassWord42" << EOF
+    CREATE DATABASE strichliste;
+    COMMIT;
+EOF
+    cd /storage/web/docroot/strichliste
+    php bin/console doctrine:schema:create
 fi;
-
 
 #start main services
 syslogd -C128 -t
