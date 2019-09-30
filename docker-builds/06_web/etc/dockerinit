@@ -11,22 +11,25 @@ fi
 
 #define our service and home directories and setup permissions
 rm -rf              /home
-ln -s               /storage/home /home
+ln -fs              /storage/home /home
 ln -fs              /storage/root/.zsh_history /root/.zsh_history
 
 if [ ! -d "/storage/web" ]; then
-    mkdir -p /storage/web/var/lib /storage/web/docroot /var/lib/mysql
+    echo "creating /storage/web folder and move existing content"
+    mkdir -p /storage/web/var/lib /storage/web/docroot
     mv /var/lib/mysql /storage/web/var/lib
+    ln -fs /storage/web/var/lib/mysql /var/lib/mysql
+    sync
     mv /opt/strichliste /storage/web/docroot/strichliste
-else
-    rm -rf /var/lib/mysql
-    ln -fs /storage/web/var/lib/mysql /var/lib
 fi;
+
+echo "recreating MySQL symlinks"
+rm -rf /var/lib/mysql
+ln -fs /storage/web/var/lib/mysql /var/lib
 
 rm -rf /srv
 ln -fs /storage/web/docroot /srv
-find /storage/web -print0 |xargs -0 chown www-data:www-data
-find /storage/web/var/lib/mysql -print0 |xargs -0 chown mysql:mysql
+chown mysql:mysql /storage/web /storage/web/var/lib/mysql
 
 #create lightty usable certificate from storage 
 cat /storage/certificates/privkey.pem /storage/certificates/cert.pem > /etc/lighttpd/server.pem
@@ -35,7 +38,6 @@ chmod 660 /etc/lighttpd/server.pem
 
 # set MySQL root password
 if [ ! -f "/storage/web/.mysqlcreds" ]; then
-    rm -rf /opt/web/var/lib/mysql/*
     mysql_install_db
     passgen="$(dd if=/dev/urandom count=16 bs=32 2>/dev/null |tr -cd "[:alnum:]" |head -c 16)"
     echo "$passgen" > "/storage/web/.mysqlcreds"
@@ -43,14 +45,15 @@ if [ ! -f "/storage/web/.mysqlcreds" ]; then
     mysqladmin -u root password "$passgen"
     chmod 600 "/storage/web/.mysqlcreds"
     mysql --user=root --password=$(cat /storage/web/.mysqlcreds) << EOF
-    GRANT ALL PRIVILEGES ON *.* TO 'strichliste'@'localhost' IDENTIFIED BY '32YourPassWord42';
-    GRANT SELECT ON *.* TO 'strichliste'@'localhost';
-EOF
-    mysql --user="strichliste" --password="32YourPassWord42" << EOF
-    CREATE DATABASE strichliste;
-    COMMIT;
+	CREATE DATABASE strichliste;
+	CREATE USER 'strichliste'@'localhost' IDENTIFIED BY '32YourPassWord42';
+	GRANT ALL PRIVILEGES ON strichliste.* TO 'strichliste'@'localhost';
+        GRANT SELECT ON *.* TO 'strichliste'@'localhost';
+	FLUSH PRIVILEGES;
+	COMMIT;
 EOF
     cd /storage/web/docroot/strichliste
+    php /usr/bin/composer update
     php bin/console doctrine:schema:create
 fi;
 
@@ -58,7 +61,6 @@ fi;
 syslogd -C128 -t
 service cron start
 service anacron start
-service redis-server start
 service mysql start
 service lighttpd start
 
