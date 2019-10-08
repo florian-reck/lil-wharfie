@@ -1,0 +1,42 @@
+#!/bin/bash 
+# mysql -u root --password=$(cat /storage/nextcloud/.mysqlcreds)
+
+## create user and grant access
+passgen=$(cat /storage/nextcloud/.mysqlcreds)
+cat << EOF > /storage/nextcloud/config/config.php
+<?php
+\$CONFIG = array (
+  'installed' => false,
+  'memcache.locking' => '\\\\OC\\\\Memcache\\\\Redis',
+  'redis' => 
+  array (
+    'host' => 'localhost',
+    'port' => 6379,
+    'timeout' => 0,
+    'password' => '',
+  ),
+  'memcache.local' => '\\\\OC\\\\Memcache\\\\APCu',
+  'loglevel' => 2,
+  'logtimezone' => 'UTC',
+  'log_type' => 'syslog',
+  'syslog_tag' => 'nextcloud-php',
+)
+?>
+EOF
+
+cat << EOF > /storage/nextcloud/config/autoconfig.php
+<?php
+\$AUTOCONFIG = array (
+  'dbtype' => 'mysql',
+  'dbname' => 'nextcloud',
+  'dbhost' => 'localhost',
+  'dbuser' => 'root',
+  'dbpass' => '${passgen}',
+  'directory' => '/storage/nextcloud/data'
+)
+?>
+EOF
+
+chown www-data:www-data /storage/nextcloud/config/*config.php /opt/nextcloud/data
+chmod 770 /storage/nextcloud/config/*config.php
+chmod 775 /opt/nextcloud/data
