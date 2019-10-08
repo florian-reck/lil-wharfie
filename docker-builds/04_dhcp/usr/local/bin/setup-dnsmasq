@@ -39,6 +39,7 @@ ra-param=eth0,high,60,1200
 dhcp-authoritative
 proxy-dnssec
 dhcp-option=vendor:MSFT,2,1i
+addn-hosts=/storage/dhcp/additional_hosts
 """.format(**{
     'ipRangeStart'  : config['network']['dhcp']['ipRangeStart'],
     'ipRangeStop'   : config['network']['dhcp']['ipRangeStop'],

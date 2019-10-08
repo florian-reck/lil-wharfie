@@ -3,7 +3,8 @@ MAINTAINER Florian Reck
 ENV DEBIAN_FRONTEND=noninteractive
 
 #install necessary packages
-RUN apt-get -yq install python3-ldap python3-yaml unbound dnsmasq dnsutils
+RUN apt-get -yq update && apt-get -yq full-upgrade
+RUN apt-get -yq install python3-ldap python3-yaml unbound dnsmasq dnsutils golang build-essential git
 
 #copy pre configuration
 COPY etc/unbound/unbound.conf.d/* /etc/unbound/unbound.conf.d/
@@ -13,6 +14,11 @@ RUN patch -R /etc/nsswitch.conf < /tmp/nsswitch.conf.patch
 
 # copy necessary scripts 
 COPY usr/local/bin/* /usr/local/bin/
+
+# build DoH server
+RUN cd /opt; git clone --depth=1 "https://github.com/m13253/dns-over-https"
+RUN cd /opt/dns-over-https; make && make install && rm -rf /opt/dns-over-https;
+COPY etc/dns-over-https/doh-server.conf /etc/dns-over-https/doh-server.conf
 
 # clean up and create entrypoint
 RUN apt-get -yq clean

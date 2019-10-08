@@ -9,18 +9,21 @@ if [ ! -d "/storage" ]; then
     exit 1
 fi
 
+#preconfigure
+if [ ! -d "/storage/dhcp" ]; then
+    mkdir -p /storage/dhcp
+    touch /storage/dhcp/custom_config
+    touch /storage/dhcp/additional_hosts
+    ln -s /storage/dhcp/custom_config /etc/dnsmasq.d/custom_config
+    sync
+fi;
+
 #start services
 syslogd -C128 -t
 setup-dnsmasq
+
 service cron start
 service anacron start
 service unbound start
 service dnsmasq start
-
-#upgrade
-apt-get -yq update
-apt-get -yq full-upgrade
-
-
-#wait forever
-while true; do sleep 60s; done;
+doh-server -conf /etc/dns-over-https/doh-server.conf

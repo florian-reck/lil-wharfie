@@ -3,6 +3,7 @@
 -p 67:67/udp
 -p 546:546/udp
 -p 547:547/udp
+-p 8053:8053/tcp
 --cap-add=NET_ADMIN
 --cap-add=NET_BROADCAST
 --network pubnet

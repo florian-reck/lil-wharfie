@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 #install necessary packages
 RUN apt-get -qy update
 RUN apt-get -qy upgrade
-RUN apt-get -yq install php python3-ldap python3-yaml lighttpd php-tokenizer php-mbstring php-xml php-json php-fpm php-cgi php-imagick php-curl php-gd php-pear php-ldap php-intl libphp-phpmailer php-sabre-dav php-xml php-zip php-gd php-curl php-mysql php-sqlite3 mariadb-server mariadb-client smbclient unzip php-mbstring php-seclib php-pimple php-apcu php-smbclient composer
+RUN apt-get -yq install php python3-ldap python3-yaml lighttpd php-tokenizer php-mbstring php-xml php-json php-fpm php-cgi php-imagick php-curl php-gd php-pear php-ldap php-intl libphp-phpmailer php-sabre-dav php-xml php-zip php-gd php-curl php-mysql php-sqlite3 mariadb-server mariadb-client smbclient unzip php-mbstring php-seclib php-pimple php-apcu php-smbclient composer python3-flask
 ADD etc/lighttpd /etc/lighttpd
 ADD etc/php/7.3/cgi/php.ini /etc/php/7.3/cgi
 

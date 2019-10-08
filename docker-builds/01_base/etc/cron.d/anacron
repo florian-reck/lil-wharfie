@@ -3,4 +3,4 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 LANGUAGE=en_US.UTF-8
 LANG=en_US.UTF-8
 LC_ALL=en_US.UTF-8
-30 * * * *   root source /etc/profile; /etc/init.d/anacron start
+30 * * * *   root . /etc/profile; /etc/init.d/anacron start

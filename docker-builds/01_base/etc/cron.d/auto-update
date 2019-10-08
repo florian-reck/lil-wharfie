@@ -3,4 +3,4 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 LANGUAGE=en_US.UTF-8
 LANG=en_US.UTF-8
 LC_ALL=en_US.UTF-8
-30 4 * * *   root source /etc/profile; /usr/lib/apt/apt.systemd.daily 2>&1 >>/var/log/apt.systemd.daily.log;
+30 4 * * *   root . /etc/profile; /usr/lib/apt/apt.systemd.daily 2>&1 >>/var/log/apt.systemd.daily.log;
