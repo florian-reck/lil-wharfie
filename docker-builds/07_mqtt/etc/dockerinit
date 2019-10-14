@@ -1,0 +1,35 @@
+#!/bin/bash -e
+source /etc/profile
+if [ ! -d "/storage" ]; then
+    echo "We need a place to store and share persistent data. Please recreate this "
+    echo "container using docker -v parameter like this:"
+    echo ""
+    echo "  docker -v {your local storage directory}:/storage:rw,z ......"
+    echo ""
+    exit 1
+fi
+
+#define our service and home directories and setup permissions
+mkdir -p            /storage/home /storage/loginbox/etc/ssh
+chown root:root     /storage/home /storage 
+chmod 755           /storage/home /storage/loginbox
+chmod 755           /storage
+chmod u+s           /bin/ping /bin/ping6
+chmod 600           /storage/initialconfig.yaml
+rm -rf              /home
+ln -s               /storage/home /home
+ln -fs              /storage/root/.zsh_history /root/.zsh_history
+
+if [ ! -d "/storage/mqtt" ]; then
+    mkdir -p /storage/mqtt
+    mv /etc/mosquitto/mosquitto.conf /storage/mqtt/mosquitto.conf
+    ln -s /storage/mqtt/mosquitto.conf /etc/mosquitto/mosquitto.conf
+    sync
+fi;
+
+#start services
+syslogd -C128 -t
+service mosquitto start
+
+#wait forever
+while true; do sleep 60s; done;
